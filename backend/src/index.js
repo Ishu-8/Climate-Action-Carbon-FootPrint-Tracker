@@ -1,5 +1,5 @@
 console.log("THIS INDEX FILE IS RUNNING");
-require("dotenv").config({ path: "../.env" });
+require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
