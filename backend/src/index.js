@@ -55,6 +55,47 @@ app.get("/migrate", async (req, res) => {
   }
 });
 
+
+app.get("/seed", async (req, res) => {
+  try {
+    await pool.query(`
+      INSERT INTO public.adjustment_factors (id, category, factor_name, multiplier) VALUES
+      (1,'peak_hours','peak',1.2),(2,'peak_hours','off_peak',0.9),(3,'season','summer',1.15),
+      (4,'season','winter',1.1),(5,'season','normal',1),(6,'traffic','light',1),
+      (7,'traffic','moderate',1.1),(8,'traffic','heavy',1.2),(9,'ac','AC_ON',1.05),
+      (10,'ac','AC_OFF',1),(11,'vehicle_age','new',1),(12,'vehicle_age','old',1.1),
+      (13,'renewable_usage','solar_enabled',0.7),(14,'weather','normal',1),
+      (15,'weather','extreme_heat',1.05),(21,'meal_source','local',0.9),
+      (22,'meal_source','imported',1.2),(23,'cooking_method','raw',0.8),
+      (24,'cooking_method','gas_stove',1),(25,'cooking_method','electric_stove',1.1),
+      (26,'cooking_method','microwave',0.95),(27,'organic','organic',0.85),
+      (28,'organic','non_organic',1)
+      ON CONFLICT (id) DO NOTHING;
+
+      INSERT INTO public.energy_emission_factors (id, energy_source, emission_factor) VALUES
+      (1,'Grid Electricity - India',0.82),(2,'Solar',0.05),(3,'Wind',0.02),(4,'Diesel Generator',0.9)
+      ON CONFLICT (id) DO NOTHING;
+
+      INSERT INTO public.food_emission_factors (id, meal_type, emission_factor) VALUES
+      (1,'Veg Meal',1.5),(2,'Chicken Meal',2.5),(3,'Beef Meal',6),(4,'Milk (1L)',1.2),(5,'Rice (1kg)',2.7)
+      ON CONFLICT (id) DO NOTHING;
+
+      INSERT INTO public.transport_emission_factors (id, vehicle_type, fuel_type, emission_factor) VALUES
+      (1,'Car','Petrol',0.13),(2,'Car','Diesel',0.15),(3,'Car','EV',0.02),
+      (4,'Bike','Petrol',0.05),(5,'Bus','Diesel',0.08),(6,'Train','Electric',0.04)
+      ON CONFLICT (id) DO NOTHING;
+
+      SELECT setval('public.adjustment_factors_id_seq', 28, true);
+      SELECT setval('public.energy_emission_factors_id_seq', 4, true);
+      SELECT setval('public.food_emission_factors_id_seq', 5, true);
+      SELECT setval('public.transport_emission_factors_id_seq', 6, true);
+    `);
+    res.json({ message: "✅ Seed data inserted successfully!" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ✅ Routes
 const transportRoutes = require("./routes/transport");
 app.use("/api/transport", transportRoutes);
