@@ -10,6 +10,7 @@ const app = express();
 app.use(cors({
   origin: [
     "http://localhost:3000",
+    "https://climate-action-carbon-foot-print-tr.vercel.app",
     process.env.FRONTEND_URL || "http://localhost:3000"
   ],
   credentials: true
