@@ -6,13 +6,16 @@ const cors = require("cors");
 const pool = require("./config/db");
 const app = express();
 
-// ✅ CORS 
+// ✅ CORS
 app.use(cors({
-  origin: "http://localhost:3000",
+  origin: [
+    "http://localhost:3000",
+    process.env.FRONTEND_URL || "http://localhost:3000"
+  ],
   credentials: true
 }));
 
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
 // ✅ Test route
 app.get("/", (req, res) => {
@@ -34,7 +37,7 @@ app.use("/api/summary", summaryRoutes);
 
 const authRoutes = require("./routes/auth");
 console.log("Auth route loaded");
-app.use("/api/auth", authRoutes);  // ✅ /auth → /api/auth
+app.use("/api/auth", authRoutes);
 
 const environmentRoutes = require("./routes/environment");
 app.use("/api/environment", environmentRoutes);
@@ -63,17 +66,18 @@ app.use("/api/profile", profileRoute);
 const { startMonthlyStarAward } = require("./jobs/monthlyStarAward");
 startMonthlyStarAward();
 
-// Daily midnight — end date expired challenges check
+// Daily midnight
 cron.schedule("0 0 * * *", () => {
   console.log("⏰ Daily cron: checking expired challenges...");
   checkChallenges();
 });
 
-// Every hour — check if any challenge end date passed
+// Every hour
 cron.schedule("0 * * * *", () => {
   console.log("⏰ Hourly cron: checking end dates...");
   checkChallenges();
 });
+
 // DB Test
 app.get("/test-db", async (req, res) => {
   try {
@@ -88,7 +92,7 @@ app.get("/test-db", async (req, res) => {
   }
 });
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
