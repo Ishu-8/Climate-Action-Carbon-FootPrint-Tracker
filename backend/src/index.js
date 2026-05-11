@@ -96,6 +96,21 @@ app.get("/seed", async (req, res) => {
   }
 });
 
+app.get("/create-admin", async (req, res) => {
+  try {
+    const bcrypt = require("bcryptjs");
+    const hashedPassword = await bcrypt.hash("ishu@2004", 10);
+    await pool.query(`
+      INSERT INTO public.users (name, email, password, role)
+      VALUES ('Admin', 'ishwarya2082004@gmail.com', $1, 'system_admin')
+      ON CONFLICT (email) DO UPDATE SET password = $1, role = 'system_admin'
+    `, [hashedPassword]);
+    res.json({ message: "✅ Admin created successfully!" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ✅ Routes
 const transportRoutes = require("./routes/transport");
 app.use("/api/transport", transportRoutes);
